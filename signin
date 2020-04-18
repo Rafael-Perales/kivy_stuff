@@ -1,0 +1,148 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.lang import Builder
+from kivy.uix.vkeyboard import VKeyboard
+from kivy.uix.screenmanager import ScreenManager, Screen
+
+import mysql.connector
+import hashlib
+Builder.load_string("""
+<FlatButton@ButtonBehavior+Label>:
+    font_size: 16
+
+<SignIn>:
+    id: main_win
+	orientation: "vertical"
+	spacing: 10
+	space_x: self.size[0]/3
+	canvas.before:
+		Rectangle:
+			size: self.size
+			pos: self.pos
+			source:"Lubbock.png"
+
+	BoxLayout:
+		size_hint_y: None
+		height: 50
+		canvas.before:
+			Color:
+				rgba:(0,.3,1,.8)
+			Rectangle:
+				size: self.size
+				pos: self.pos
+		Label:
+			text: "   Employee Access"
+			bold: True
+			size_hint_x: .9
+		FlatButton:
+            text: "x"
+            size_hint_x: .1
+			on_press:root.stop()
+
+	BoxLayout:
+		orientation:'vertical'
+		padding: main_win.space_x,10
+		#spacing: 20
+		BoxLayout:
+			orientation: "vertical"
+			spacing: 20
+			size_hint_y: None
+			height: 125
+			Label: 
+				id: info
+				text: ''
+				markup: True
+				size_hint_y: None
+				height:10
+			TextInput:
+				id:user_field
+				hint_text: "UserName"
+				multiline: False
+				focus:True
+				on_text_validate:pass_field.focus=True
+			TextInput:
+				id:pass_field
+				hint_text: "Password"
+				multiline:False
+				password:True
+				on_text_validate:root.validate_user()
+						
+		Label:
+			id:sp
+			size_hint_y: None
+			height: 40
+		SmoothButton:
+			text: "Log In"
+			size_hint_y: None
+			height: 40
+			back_color:(.06,.45,.7,1)
+			on_release:root.validate_user()
+				
+		Label:
+			id:sp2
+
+<SmoothButton@Button>:
+	background_color:(0,0,0,0)
+	background_normal:''
+	back_color:(1,0,1,1)
+	border_radius:[18]
+	canvas.before:
+		Color:
+			rgba:self.back_color
+		RoundedRectangle:
+			size:self.size
+			pos:self.pos
+			radius:[50,]
+
+
+""")
+
+
+class SignIn(BoxLayout):
+	def __init__(self,**kwargs):
+		super(SignIn,self).__init__(**kwargs)
+		
+	def stop(self):
+		App.get_running_app().stop()
+
+	def validate_user(self):
+		self.mydb=mysql.connector.connect(
+			host='localhost',
+			user='root',
+			passwd='****',
+			database='****'
+		 )
+		self.mycursor=self.mydb.cursor()
+
+		user_query="SELECT user_name FROM users WHERE user_name=%s"
+
+
+		user =self.ids.user_field
+		passw =self.ids.pass_field
+		info=self.ids.info
+
+
+		name =user.text
+		password=passw.text
+		print(user_check)
+
+		self.mycursor.execute(user_query,name)
+		check=self.mycursor.fetchone()
+
+
+		if name == '' or password == '':
+			info.text = '[color=#FF0000]username and/ or password required[/color]'
+		else:
+			if user == None:
+				info.text = '[color=#FF0000]Invalid Username[/color]'
+			else:
+				#Do Something
+	pass
+	
+class SigninApp(App):
+    def build(self):
+        return SignIn()
+
+if __name__=="__main__":
+    sa = SigninApp()
+    sa.run()
